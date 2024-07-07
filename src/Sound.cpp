@@ -10,8 +10,6 @@ int Sound::num_channels;
 bool Sound::enabled_flag = false;
 int* Sound::TimeStamps = nullptr;
 
-static SDL_AudioDeviceID dev;
-
 bool Sound::Init(int channels, bool enableFlag)
 {
 	// change priority to make SDL audio thread run properly
@@ -24,7 +22,7 @@ bool Sound::Init(int channels, bool enableFlag)
 		return false;
 	}
 
-	if (Mix_OpenAudio(11025, MIX_DEFAULT_FORMAT, 1, 4096) < 0)
+	if (Mix_OpenAudio(11025, MIX_DEFAULT_FORMAT, 2, 512) < 0)
     {
 		printf("Mix_OpenAudio failed\n");
         return false;    
