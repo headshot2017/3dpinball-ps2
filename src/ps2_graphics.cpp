@@ -42,7 +42,7 @@ void ps2_graphics::Initialize()
 	graph_set_mode(mode, display_mode, display, GRAPH_ENABLE);
 	graph_set_screen(0, 0, fb_colors.width, fb_colors.height);
 
-	graph_set_bgcolor(50, 50, 50);
+	graph_set_bgcolor(0, 0, 0);
 	graph_set_framebuffer_filtered(fb_colors.address, fb_colors.width, fb_colors.psm, 0, 0);
 	graph_enable_output();
 
@@ -52,7 +52,7 @@ void ps2_graphics::Initialize()
 
 	q = draw_setup_environment(q, 0, &fb_colors, &fb_depth);
 	q = draw_clear(q, 0, 0, 0,
-					fb_colors.width, fb_colors.height, 170, 170, 170);
+					fb_colors.width, fb_colors.height, 0, 0, 0);
 	q = draw_finish(q);
 
 	dma_channel_send_normal(DMA_CHANNEL_GIF, packet->data, q - packet->data, 0, 0);
