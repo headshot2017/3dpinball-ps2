@@ -121,14 +121,14 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 
 	// Check for full tilt .dat file and switch to it automatically
 
-	/*auto cadetFilePath = pinball::make_path_name("CADET.DAT");
+	auto cadetFilePath = pinball::make_path_name("CADET.DAT");
 	auto cadetDat = fopen(cadetFilePath.c_str(), "r");
 	if (cadetDat)
 	{
 		fclose(cadetDat);
 		DatFileName = "CADET.DAT";
 		pb::FullTiltMode = true;
-	}*/
+	}
 
 	// PB init from message handler
 
