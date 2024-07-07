@@ -1,8 +1,5 @@
 #pragma once
 
-#include <SDL2/SDL.h>
-#include <SDL2/SDL_mixer.h>
-
 constexpr uint32_t SwapByteOrderInt(uint32_t val)
 {
 	return (val >> 24) |
@@ -94,10 +91,10 @@ public:
 	static int music_init();
 	static void music_shutdown();
 private:
-	static std::vector<Mix_Music*> LoadedTracks;
-	static Mix_Music *track1, *track2, *track3, *active_track, *NextTrack;
+	static std::vector<void*> LoadedTracks;
+	static void *track1, *track2, *track3, *active_track, *NextTrack;
 	static bool SetNextTrackFlag;
-	static Mix_Music* load_track(std::string fileName);
-	static bool play_track(Mix_Music* midi);
+	static void* load_track(std::string fileName);
+	static bool play_track(void* midi);
 	static std::vector<uint8_t>* MdsToMidi(std::string file);
 };
