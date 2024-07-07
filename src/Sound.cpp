@@ -22,7 +22,7 @@ bool Sound::Init(int channels, bool enableFlag)
 		return false;
 	}
 
-	if (Mix_OpenAudio(11025, MIX_DEFAULT_FORMAT, 2, 512) < 0)
+	if (Mix_OpenAudio(48000, MIX_DEFAULT_FORMAT, 2, 512) < 0)
     {
 		printf("Mix_OpenAudio failed\n");
         return false;    
