@@ -22,7 +22,7 @@ bool Sound::Init(int channels, bool enableFlag)
 		return false;
 	}
 
-	if (Mix_OpenAudio(11025, MIX_DEFAULT_FORMAT, 2, 512) < 0)
+	if (Mix_OpenAudio(22050, MIX_DEFAULT_FORMAT, 2, 512) < 0)
     {
 		printf("Mix_OpenAudio failed\n");
         return false;    
@@ -67,7 +67,10 @@ void Sound::PlaySound(uint8_t* buf, int time, int size, int samplerate)
 
 uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 {
-	return (uint8_t*)Mix_LoadWAV(lpName.c_str());
+	Mix_Chunk* snd = Mix_LoadWAV(lpName.c_str());
+	if (!snd)
+		printf("Failed to load sound '%s'\n", lpName.c_str());
+	return (uint8_t*)snd;
 }
 
 void Sound::FreeSound(uint8_t* wave)
