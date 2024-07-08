@@ -36,13 +36,19 @@ EE_INCS += -I$(SBVLITE)/include
 EE_LDFLAGS += -L$(SBVLITE)/lib
 EE_LIBS += -lpatches
 
-all: $(BUILD_DIR) $(EE_BIN)
+EE_OBJS += $(BUILD_DIR)/PINBALL_ogg.o
+
+all: $(BUILD_DIR) $(BUILD_DIR)/PINBALL_ogg.o $(EE_BIN)
 
 clean:
 	rm -f $(EE_OBJS) $(EE_BIN) $(EE_IRX_SRCS)
 
 $(BUILD_DIR):
 	mkdir -p $@
+
+$(BUILD_DIR)/PINBALL_ogg.o: data/PINBALL.ogg
+	bin2c $< $*.c $(notdir $*)
+	$(EE_CC) -c $*.c -o $*.o
 
 run:
 	ps2client execee host:$(EE_BIN)

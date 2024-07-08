@@ -5,9 +5,11 @@
 #include "pb.h"
 #include "pinball.h"
 
+extern unsigned char PINBALL_ogg[];
+extern unsigned int  size_PINBALL_ogg;
 
-std::vector<void*> midi::LoadedTracks{};
-void *midi::track1, *midi::track2, *midi::track3, *midi::active_track, *midi::NextTrack;
+std::vector<Mix_Music*> midi::LoadedTracks{};
+Mix_Music *midi::track1, *midi::track2, *midi::track3, *midi::active_track, *midi::NextTrack;
 bool midi::SetNextTrackFlag;
 
 constexpr uint32_t FOURCC(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
@@ -50,6 +52,7 @@ int midi::music_init()
 {
 	active_track = nullptr;
 
+	/*
 	if (pb::FullTiltMode)
 	{
 		track1 = load_track("TABA1");
@@ -57,6 +60,7 @@ int midi::music_init()
 		track3 = load_track("TABA3");
 	}
 	else
+	*/
 	{
 		// 3DPB has only one music track. PINBALL2.MID is a bitmap font, in the same format as PB_MSGFT.bin
 		track1 = load_track("PINBALL");
@@ -72,20 +76,24 @@ int midi::music_init()
 void midi::music_shutdown()
 {
 	if (active_track)
-		//Mix_HaltMusic();
+		Mix_HaltMusic();
 
 	for (auto midi : LoadedTracks)
 	{
-		//Mix_FreeMusic(midi);
+		Mix_FreeMusic(midi);
 	}
 	active_track = nullptr;
 	LoadedTracks.clear();
 }
 
-void* midi::load_track(std::string fileName)
+Mix_Music* midi::load_track(std::string fileName)
 {
+	Mix_Music* audio = nullptr;
+
+	if (fileName == "PINBALL")
+		audio = Mix_LoadMUS_RW(SDL_RWFromConstMem(PINBALL_ogg, size_PINBALL_ogg), 1);
+
 	/*
-	void* audio = nullptr;
 	if (pb::FullTiltMode)
 	{
 		// FT sounds are in SOUND subfolder
@@ -109,17 +117,16 @@ void* midi::load_track(std::string fileName)
 			}
 		}
 	}
+	*/
 
 	if (!audio)
 		return nullptr;
 
 	LoadedTracks.push_back(audio);
 	return audio;
-	*/
-	return nullptr;
 }
 
-bool midi::play_track(void* midi)
+bool midi::play_track(Mix_Music* midi)
 {
 	music_stop();
 	if (!midi)
@@ -132,15 +139,13 @@ bool midi::play_track(void* midi)
 		return true;
 	}
 
-    /*
 	if (Mix_PlayMusic(midi, -1))
 	{
 		active_track = nullptr;
 		return false;
 	}
 
-	Mix_VolumeMusic(96);
-    */
+	//Mix_VolumeMusic(96);
 
 	active_track = midi;
 	return true;
