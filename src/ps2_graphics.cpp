@@ -7,6 +7,9 @@
 #include <cstring>
 #include <malloc.h>
 
+#include <gs_psm.h>
+#include <dma.h>
+
 static framebuffer_t fb_colors;
 static zbuffer_t     fb_depth;
 static int display_mode;
@@ -45,14 +48,18 @@ void ps2_graphics::Initialize()
 	graph_set_bgcolor(0, 0, 0);
 	graph_set_framebuffer_filtered(fb_colors.address, fb_colors.width, fb_colors.psm, 0, 0);
 	graph_enable_output();
+}
 
-
+void ps2_graphics::SetupEnv()
+{
 	packet_t* packet = packet_init(100, PACKET_NORMAL);
 	qword_t* q = packet->data;
 
+	int startX = (fb_colors.width/2 - render::vscreen->Width/2);
+	int startY = (fb_colors.height/2 - render::vscreen->Height/2);
+
 	q = draw_setup_environment(q, 0, &fb_colors, &fb_depth);
-	q = draw_clear(q, 0, 0, 0,
-					fb_colors.width, fb_colors.height, 0, 0, 0);
+	q = draw_clear(q, 0, startX, startY, fb_colors.width, fb_colors.height, 0, 0, 0);
 	q = draw_finish(q);
 
 	dma_channel_send_normal(DMA_CHANNEL_GIF, packet->data, q - packet->data, 0, 0);
@@ -71,12 +78,12 @@ void ps2_graphics::Update()
 
 	FlushCache(0);
 	
-	packet_t* packet = packet_init(200, PACKET_NORMAL);
+	packet_t* packet = packet_init(500, PACKET_NORMAL);
 	qword_t* q = packet->data;
 
-	q = draw_texture_transfer(q, render::vscreen->BmpBufPtr1, render::vscreen->Width, render::vscreen->Height, GS_PSM_32, 
-								 fb_colors.address, fb_colors.width);
+	q = draw_texture_transfer(q, render::vscreen->BmpBufPtr1, render::vscreen->Width, render::vscreen->Height, GS_PSM_32, fb_colors.address, fb_colors.width);
 	q = draw_texture_flush(q);
+	q = draw_finish(q);
 
 	dma_channel_send_chain(DMA_CHANNEL_GIF, packet->data, q - packet->data, 0, 0);
 	dma_wait_fast();

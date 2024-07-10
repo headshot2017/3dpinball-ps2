@@ -10,7 +10,7 @@
 #include "pinball.h"
 #include "render.h"
 #include "Sound.h"
-#include "ps2_graphics.h"
+#include "ps2gskit_graphics.h"
 #include "ps2_input.h"
 
 #include <sifrpc.h>
@@ -111,7 +111,7 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 
 	// Initialize graphics and input
 
-	ps2_graphics::Initialize();
+	ps2gskit_graphics::Initialize();
 	ps2_input::Initialize();
 
 	// Set the base path for PINBALL.DAT
@@ -147,6 +147,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 			PrintFatalError("Could not load game data:\n%s file is missing.\n", DatFileName.c_str());
 		}
 	}
+
+	ps2gskit_graphics::SetupEnv();
 
 	// Initialize game
 
@@ -184,9 +186,9 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 		}
 
 		// Copy game screen buffer to texture
-		ps2_graphics::Update();
+		ps2gskit_graphics::Update();
 
-		ps2_graphics::SwapBuffers();
+		ps2gskit_graphics::SwapBuffers();
 	}
 
 	printf("Uninitializing...\n");
@@ -256,7 +258,7 @@ void winmain::PrintFatalError(const char *message, ...)
 		if (ps2_input::SkipError())
 			break;
 
-		ps2_graphics::SwapBuffers();
+		ps2gskit_graphics::SwapBuffers();
 	}
 
 	exit(EXIT_FAILURE);

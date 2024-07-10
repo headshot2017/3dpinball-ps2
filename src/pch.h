@@ -32,10 +32,7 @@
 
 #include <libpad.h>
 #include <packet.h>
-#include <dma_tags.h>
-#include <gif_tags.h>
 #include <gs_psm.h>
-#include <dma.h>
 #include <graph.h>
 #include <draw.h>
 #include <kernel.h>

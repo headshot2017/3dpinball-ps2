@@ -1,6 +1,6 @@
 #pragma once
 
-class ps2_graphics
+class ps2gskit_graphics
 {
 public:
     static void Initialize();
