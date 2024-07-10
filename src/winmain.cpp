@@ -89,6 +89,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 	SifLoadBuffer(bdm_irx);
 	SifLoadBuffer(bdmfs_fatfs_irx);
 	SifLoadBuffer(usbmass_bd_irx);
+	SifLoadBuffer(freesd_irx);
+	SifLoadBuffer(audsrv_irx);
 
 	// Init USB
 	int retryCount = 0x1000;

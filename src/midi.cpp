@@ -8,8 +8,8 @@
 extern unsigned char PINBALL_ogg[];
 extern unsigned int  size_PINBALL_ogg;
 
-std::vector<Mix_Music*> midi::LoadedTracks{};
-Mix_Music *midi::track1, *midi::track2, *midi::track3, *midi::active_track, *midi::NextTrack;
+std::vector<void*> midi::LoadedTracks{};
+void *midi::track1, *midi::track2, *midi::track3, *midi::active_track, *midi::NextTrack;
 bool midi::SetNextTrackFlag;
 
 constexpr uint32_t FOURCC(uint8_t a, uint8_t b, uint8_t c, uint8_t d)
@@ -75,23 +75,23 @@ int midi::music_init()
 
 void midi::music_shutdown()
 {
-	if (active_track)
-		Mix_HaltMusic();
+	//if (active_track)
+		//Mix_HaltMusic();
 
 	for (auto midi : LoadedTracks)
 	{
-		Mix_FreeMusic(midi);
+		//Mix_FreeMusic(midi);
 	}
 	active_track = nullptr;
 	LoadedTracks.clear();
 }
 
-Mix_Music* midi::load_track(std::string fileName)
+void* midi::load_track(std::string fileName)
 {
-	Mix_Music* audio = nullptr;
+	void* audio = nullptr;
 
-	if (fileName == "PINBALL")
-		audio = Mix_LoadMUS_RW(SDL_RWFromConstMem(PINBALL_ogg, size_PINBALL_ogg), 1);
+	//if (fileName == "PINBALL")
+		//audio = Mix_LoadMUS_RW(SDL_RWFromConstMem(PINBALL_ogg, size_PINBALL_ogg), 1);
 
 	/*
 	if (pb::FullTiltMode)
@@ -126,7 +126,7 @@ Mix_Music* midi::load_track(std::string fileName)
 	return audio;
 }
 
-bool midi::play_track(Mix_Music* midi)
+bool midi::play_track(void* midi)
 {
 	music_stop();
 	if (!midi)
@@ -139,11 +139,11 @@ bool midi::play_track(Mix_Music* midi)
 		return true;
 	}
 
-	if (Mix_PlayMusic(midi, -1))
+	/*if (Mix_PlayMusic(midi, -1))
 	{
 		active_track = nullptr;
 		return false;
-	}
+	}*/
 
 	//Mix_VolumeMusic(96);
 
