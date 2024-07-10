@@ -16,10 +16,12 @@ static GSTEXTURE screen;
 
 void ps2gskit_graphics::Initialize()
 {
+	// default initialization
 	gsGlobal = gsKit_init_global();
-	gsGlobal->PSM = GS_PSM_32;
+	gsGlobal->PSM = GS_PSM_CT32; // RGBA32
 	gsGlobal->PSMZ = GS_PSMZ_16S;
 
+	// default dmaKit initialization
 	dmaKit_init(D_CTRL_RELE_OFF,D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
 	dmaKit_chan_init(DMA_CHANNEL_GIF);
 
@@ -35,7 +37,7 @@ void ps2gskit_graphics::SetupEnv()
 {
 	screen.Width = render::vscreen->Width;
 	screen.Height = render::vscreen->Height;
-	screen.PSM = GS_PSM_32;
+	screen.PSM = GS_PSM_CT32;
 	screen.Filter = GS_FILTER_NEAREST;
 
 	int Size = gsKit_texture_size_ee(screen.Width, screen.Height, screen.PSM);

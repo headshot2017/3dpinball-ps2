@@ -8,6 +8,8 @@
 #include <malloc.h>
 
 #include <gs_psm.h>
+#include <graph.h>
+#include <draw.h>
 #include <dma.h>
 
 static framebuffer_t fb_colors;

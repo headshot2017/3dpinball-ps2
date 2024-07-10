@@ -32,9 +32,6 @@
 
 #include <libpad.h>
 #include <packet.h>
-#include <gs_psm.h>
-#include <graph.h>
-#include <draw.h>
 #include <kernel.h>
 
 typedef char* LPSTR;
