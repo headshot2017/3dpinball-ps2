@@ -103,6 +103,9 @@ uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 	fread(buffer, 1, size, f);
 	fclose(f);
 
+	// flush cache, otherwise it will load garbage
+	FlushCache(0);
+
 	if (audsrv_load_adpcm(sample, buffer, size))
 	{
 		printf("Failed to init ADPCM WAV %s\n", lpName.c_str());
