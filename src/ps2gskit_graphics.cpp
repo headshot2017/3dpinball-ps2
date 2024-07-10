@@ -11,8 +11,8 @@
 #include <dmaKit.h>
 #include <gsToolkit.h>
 
-GSGLOBAL *gsGlobal;
-GSTEXTURE screen;
+static GSGLOBAL *gsGlobal;
+static GSTEXTURE screen;
 
 void ps2gskit_graphics::Initialize()
 {
@@ -45,28 +45,20 @@ void ps2gskit_graphics::SetupEnv()
 
 	screen.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(screen.Width, screen.Height, screen.PSM), GSKIT_ALLOC_USERBUFFER);
 	gsKit_texture_upload(gsGlobal, &screen);
+}
 
-	int startX = (640/2 - render::vscreen->Width/2);
-	int startY = (448/2 - render::vscreen->Height/2);
+void ps2gskit_graphics::ShowSplash(const char* text)
+{
+	static GSTEXTURE splash;
 
-	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0));
-	gsKit_prim_sprite_texture(gsGlobal, &screen,
-							startX,  // X1
-							startY,  // Y2
-							0.0f,  // U1
-							0.0f,  // V1
-							startX + screen.Width, // X2
-							startY + screen.Height, // Y2
-							screen.Width, // U2
-							screen.Height, // V2
-							0,
-							GS_SETREG_RGBAQ(128,128,128, 0, 0));
+	SwapBuffers();
 }
 
 void ps2gskit_graphics::SwapBuffers()
 {
 	gsKit_sync_flip(gsGlobal);
 	gsKit_queue_exec(gsGlobal);
+	gsKit_queue_reset(gsGlobal->CurQueue);
 }
 
 void ps2gskit_graphics::Update()
@@ -76,4 +68,32 @@ void ps2gskit_graphics::Update()
 	int Size = gsKit_texture_size_ee(screen.Width, screen.Height, screen.PSM);
 	memcpy(screen.Mem, render::vscreen->BmpBufPtr1, Size);
 	gsKit_texture_upload(gsGlobal, &screen);
+
+	// center
+	int startX = (gsGlobal->Width/2 - render::vscreen->Width/2);
+	int startY = (gsGlobal->Height/2 - render::vscreen->Height/2);
+
+	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0)); // what this actually does is draw sprites of the specified color...
+	gsKit_prim_sprite_texture(gsGlobal, &screen,
+							startX + render::get_offset_x(),  // X1
+							startY + render::get_offset_y(),  // Y2
+							0.0f,  // U1
+							0.0f,  // V1
+							startX + screen.Width/2, // X2
+							startY + screen.Height, // Y2
+							screen.Width/2, // U2
+							screen.Height, // V2
+							0,
+							GS_SETREG_RGBAQ(128,128,128, 0, 0));
+	gsKit_prim_sprite_texture(gsGlobal, &screen,
+							startX + screen.Width/2,  // X1
+							startY,  // Y2
+							screen.Width/2,  // U1
+							0.0f,  // V1
+							startX + screen.Width, // X2
+							startY + screen.Height, // Y2
+							screen.Width, // U2
+							screen.Height, // V2
+							0,
+							GS_SETREG_RGBAQ(128,128,128, 0, 0));
 }

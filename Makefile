@@ -1,9 +1,11 @@
 SOURCE_DIRS  := src src/adpenc
+DATA_DIRS    := data
 BUILD_DIR    := build
 
-CPP_FILES := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.cpp))
-C_FILES   := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.c))
-EE_OBJS    := $(C_FILES:%.c=%.o) $(CPP_FILES:%.cpp=%.o)
+CPP_FILES  := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.cpp))
+C_FILES    := $(foreach dir,$(SOURCE_DIRS),$(wildcard $(dir)/*.c))
+DATA_FILES := $(foreach dir,$(DATA_DIRS),$(wildcard $(dir)/*.bin))
+EE_OBJS    := $(C_FILES:%.c=%.o) $(CPP_FILES:%.cpp=%.o) $(addprefix $(BUILD_DIR)/, $(notdir $(DATA_FILES:%.bin=%.o)))
 EE_BIN 	   = 3dpinball-ps2.elf
 
 EE_INCS 	:= -Isrc -I$(PS2DEV)/gsKit/include -I$(PS2SDK)/ports/include
@@ -19,7 +21,7 @@ EE_IRX_FILES=\
 	freesd.irx \
 	audsrv.irx
 
-EE_IRX_SRCS = $(addsuffix _irx.c, $(basename $(EE_IRX_FILES)))
+EE_IRX_SRCS = $(addprefix $(BUILD_DIR)/, $(addsuffix _irx.c, $(basename $(EE_IRX_FILES))))
 EE_IRX_OBJS = $(addprefix $(BUILD_DIR)/, $(addsuffix _irx.o, $(basename $(EE_IRX_FILES))))
 EE_OBJS += $(EE_IRX_OBJS)
 
@@ -37,9 +39,7 @@ EE_INCS += -I$(SBVLITE)/include
 EE_LDFLAGS += -L$(SBVLITE)/lib
 EE_LIBS += -lpatches
 
-EE_OBJS += $(BUILD_DIR)/PINBALL_ogg.o
-
-all: $(BUILD_DIR) $(BUILD_DIR)/PINBALL_ogg.o $(EE_BIN)
+all: $(BUILD_DIR) $(DATA_OBJS) $(EE_BIN)
 
 clean:
 	rm -f $(EE_OBJS) $(EE_BIN) $(EE_IRX_SRCS)
@@ -47,9 +47,10 @@ clean:
 $(BUILD_DIR):
 	mkdir -p $@
 
-$(BUILD_DIR)/PINBALL_ogg.o: data/PINBALL.ogg
-	bin2c $< $*.c $(notdir $*)
-	$(EE_CC) -c $*.c -o $*.o
+$(BUILD_DIR)/%.c:
+	bin2c data/$*.bin $@ $*
+$(BUILD_DIR)/%.o: $(BUILD_DIR)/%.c
+	$(EE_CC) -c $< -o $@
 
 run:
 	ps2client execee host:$(EE_BIN)
