@@ -9,10 +9,13 @@
 
 #include <gsKit.h>
 #include <dmaKit.h>
-#include <gsToolkit.h>
+#include "ps2_gstoolkit.h"
 
 static GSGLOBAL *gsGlobal;
 static GSTEXTURE screen;
+
+extern unsigned char splash_bmp[];
+extern unsigned int  size_splash_bmp;
 
 void ps2gskit_graphics::Initialize()
 {
@@ -51,7 +54,12 @@ void ps2gskit_graphics::SetupEnv()
 
 void ps2gskit_graphics::ShowSplash(const char* text)
 {
-	static GSTEXTURE splash;
+	static GSTEXTURE splash = {0};
+	if (splash.Mem == 0)
+	{
+		printf("try to load splash bmp\n");
+		printf("splash bmp: %d\n", gsKit_texture_bmp_mem(gsGlobal, &splash, splash_bmp, size_splash_bmp));
+	}
 
 	SwapBuffers();
 }
@@ -74,6 +82,7 @@ void ps2gskit_graphics::Update()
 	// center
 	int startX = (gsGlobal->Width/2 - render::vscreen->Width/2);
 	int startY = (gsGlobal->Height/2 - render::vscreen->Height/2);
+	float divider = 1.65f;
 
 	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0)); // what this actually does is draw sprites of the specified color...
 	gsKit_prim_sprite_texture(gsGlobal, &screen,
@@ -81,16 +90,16 @@ void ps2gskit_graphics::Update()
 							startY + render::get_offset_y(),  // Y2
 							0.0f,  // U1
 							0.0f,  // V1
-							startX + screen.Width/2, // X2
-							startY + screen.Height, // Y2
-							screen.Width/2, // U2
+							startX + render::get_offset_x() + screen.Width/divider, // X2
+							startY + render::get_offset_y() + screen.Height, // Y2
+							screen.Width/divider, // U2
 							screen.Height, // V2
 							0,
 							GS_SETREG_RGBAQ(128,128,128, 0, 0));
 	gsKit_prim_sprite_texture(gsGlobal, &screen,
-							startX + screen.Width/2,  // X1
+							startX + screen.Width/divider,  // X1
 							startY,  // Y2
-							screen.Width/2,  // U1
+							screen.Width/divider,  // U1
 							0.0f,  // V1
 							startX + screen.Width, // X2
 							startY + screen.Height, // Y2

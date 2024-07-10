@@ -114,6 +114,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 	ps2gskit_graphics::Initialize();
 	ps2_input::Initialize();
 
+	ps2gskit_graphics::ShowSplash("");
+
 	// Set the base path for PINBALL.DAT
 
 	BasePath = (char *)"mass:/APPS/3DPINBALL/";
