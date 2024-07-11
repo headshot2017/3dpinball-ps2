@@ -9,19 +9,19 @@
 
 #include <gsKit.h>
 #include <dmaKit.h>
-#include "ps2_gstoolkit.h"
 
 static GSGLOBAL *gsGlobal;
 static GSTEXTURE screen;
+static GSTEXTURE splash;
 
-extern unsigned char splash_bmp[];
-extern unsigned int  size_splash_bmp;
+extern unsigned char splash_raw[];
+extern unsigned int  size_splash_raw;
 
 void ps2gskit_graphics::Initialize()
 {
 	// default initialization
 	gsGlobal = gsKit_init_global();
-	gsGlobal->PSM = GS_PSM_CT32; // RGBA32
+	gsGlobal->PSM = GS_PSM_CT24;
 	gsGlobal->PSMZ = GS_PSMZ_16S;
 
 	// default dmaKit initialization
@@ -30,10 +30,9 @@ void ps2gskit_graphics::Initialize()
 
 	gsKit_init_screen(gsGlobal);
 
-	gsKit_mode_switch(gsGlobal, GS_PERSISTENT);
+	gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
-	u64 black = GS_SETREG_RGBAQ(0, 0, 0, 0, 0);
-	gsKit_clear(gsGlobal, black);
+	gsKit_TexManager_init(gsGlobal);
 }
 
 void ps2gskit_graphics::SetupEnv()
@@ -42,42 +41,57 @@ void ps2gskit_graphics::SetupEnv()
 	screen.Height = render::vscreen->Height;
 	screen.PSM = GS_PSM_CT32;
 	screen.Filter = GS_FILTER_NEAREST;
-
-	int Size = gsKit_texture_size_ee(screen.Width, screen.Height, screen.PSM);
-	screen.Mem = (u32*)memalign(128, Size);
-
-	memcpy(screen.Mem, render::vscreen->BmpBufPtr1, Size);
-
-	screen.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(screen.Width, screen.Height, screen.PSM), GSKIT_ALLOC_USERBUFFER);
-	gsKit_texture_upload(gsGlobal, &screen);
+	screen.Mem = (u32*)render::vscreen->BmpBufPtr1;
 }
 
 void ps2gskit_graphics::ShowSplash(const char* text)
 {
-	static GSTEXTURE splash = {0};
-	if (splash.Mem == 0)
+	if (splash.Vram == 0)
 	{
-		printf("try to load splash bmp\n");
-		printf("splash bmp: %d\n", gsKit_texture_bmp_mem(gsGlobal, &splash, splash_bmp, size_splash_bmp));
+		splash.Width = 320;
+		splash.Height = 222;
+		splash.PSM = GS_PSM_CT24;
+		splash.Filter = GS_FILTER_NEAREST;
+		splash.Mem = (u32*)malloc(gsKit_texture_size_ee(splash.Width, splash.Height, splash.PSM));
+
+		memcpy(splash.Mem, splash_raw, gsKit_texture_size_ee(splash.Width, splash.Height, splash.PSM));
 	}
+
+	int startX = (gsGlobal->Width/2 - splash.Width/2);
+	int startY = (gsGlobal->Height/2 - splash.Height/2);
+
+	gsKit_TexManager_invalidate(gsGlobal, &splash);
+	gsKit_TexManager_bind(gsGlobal, &splash);
+
+	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0));
+	gsKit_prim_sprite_texture(gsGlobal, &splash,
+							startX,  // X1
+							startY,  // Y2
+							0.0f,  // U1
+							0.0f,  // V1
+							startX + splash.Width, // X2
+							startY + splash.Height, // Y2
+							splash.Width, // U2
+							splash.Height, // V2
+							0,
+							GS_SETREG_RGBAQ(128,128,128, 0, 0));
 
 	SwapBuffers();
 }
 
 void ps2gskit_graphics::SwapBuffers()
 {
-	gsKit_sync_flip(gsGlobal);
 	gsKit_queue_exec(gsGlobal);
-	gsKit_queue_reset(gsGlobal->CurQueue);
+	gsKit_sync_flip(gsGlobal);
+	gsKit_TexManager_nextFrame(gsGlobal);
 }
 
 void ps2gskit_graphics::Update()
 {
 	render::get_dirty_regions().clear();
 
-	int Size = gsKit_texture_size_ee(screen.Width, screen.Height, screen.PSM);
-	memcpy(screen.Mem, render::vscreen->BmpBufPtr1, Size);
-	gsKit_texture_upload(gsGlobal, &screen);
+	gsKit_TexManager_invalidate(gsGlobal, &screen);
+	gsKit_TexManager_bind(gsGlobal, &screen);
 
 	// center
 	int startX = (gsGlobal->Width/2 - render::vscreen->Width/2);

@@ -55,6 +55,9 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 {
 	std::set_new_handler(memalloc_failure);
 
+	ps2gskit_graphics::Initialize();
+	ps2gskit_graphics::ShowSplash("");
+
 	// Reset the IOP
 	SifInitRpc(0);
 	while (!SifIopReset("", 0)) { }
@@ -109,12 +112,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 	if (!retryCount) PrintFatalError("Failed to init USB RPC: %d\n", &ret);
 
 
-	// Initialize graphics and input
-
-	ps2gskit_graphics::Initialize();
+	// Initialize input
 	ps2_input::Initialize();
-
-	ps2gskit_graphics::ShowSplash("");
 
 	// Set the base path for PINBALL.DAT
 
