@@ -4,7 +4,9 @@
 #include "winmain.h"
 
 #include <audsrv.h>
+
 #include "adpenc/main.h"
+#include "ps2gskit_graphics.h"
 
 int Sound::num_channels;
 bool Sound::enabled_flag = false;
@@ -63,6 +65,9 @@ uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 	FILE* f = fopen(adpName.c_str(), "rb");
 	if (!f)
 	{
+		std::string buf = "Converting WAV sounds to ADPCM...\n" + lpName;
+		ps2gskit_graphics::ShowSplash(buf);
+
 		printf("Converting '%s' to ADPCM...\n", lpName.c_str());
 		if (adpenc_main(lpName.c_str(), adpName.c_str(), 0) != 0)
 		{
