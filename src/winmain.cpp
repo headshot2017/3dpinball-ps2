@@ -95,6 +95,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 	SifLoadBuffer(freesd_irx);
 	SifLoadBuffer(audsrv_irx);
 
+	ps2gskit_graphics::ShowSplash("Loading USB driver");
+
 	// Init USB
 	int retryCount = 0x1000;
 	while(retryCount--) {
@@ -124,14 +126,45 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 
 	// Check for full tilt .dat file and switch to it automatically
 
+	auto pinballDat = fopen(pinball::make_path_name(DatFileName).c_str(), "rb");
+	bool hasPinball = !!(pinballDat);
+	if (pinballDat) fclose(pinballDat);
+
 	auto cadetFilePath = pinball::make_path_name("CADET.DAT");
 	auto cadetDat = fopen(cadetFilePath.c_str(), "r");
-	if (cadetDat)
+	bool hasCadet = !!(cadetDat);
+	if (cadetDat) fclose(cadetDat);
+
+	if (!hasPinball && hasCadet)
 	{
-		fclose(cadetDat);
 		DatFileName = "CADET.DAT";
 		pb::FullTiltMode = true;
 	}
+	else if (hasPinball && hasCadet)
+	{
+		// pick a game
+
+		while (true)
+		{
+			ps2_input::ScanPads();
+
+			if (ps2_input::Button1())
+				break;
+			if (ps2_input::Button2())
+			{
+				DatFileName = "CADET.DAT";
+				pb::FullTiltMode = true;
+				break;
+			}
+
+			ps2gskit_graphics::ShowSplash("Press CROSS to play 3D Pinball Space Cadet\nPress CIRCLE to play Full Tilt! Pinball");
+		}
+
+		ps2_input::Clear();
+	}
+
+	std::string gameName = (pb::FullTiltMode) ? "Full Tilt! Pinball" : "3D Pinball";
+	ps2gskit_graphics::ShowSplash("Loading " + gameName);
 
 	// PB init from message handler
 
@@ -145,7 +178,7 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 
 		if (pb::init())
 		{
-			PrintFatalError("Could not load game data:\n%s file is missing.\n", DatFileName.c_str());
+			PrintFatalError("Could not load game data:\n%s is missing.\n", pinball::make_path_name(DatFileName).c_str());
 		}
 	}
 
@@ -245,21 +278,22 @@ void winmain::UpdateFrameRate()
 
 void winmain::PrintFatalError(const char *message, ...)
 {
+	char buf[256] = {0};
 	va_list args;
 	va_start(args, message);
-	vprintf(message, args);
+	vsprintf(buf, message, args);
 	va_end(args);
 
-	printf("\nPress X to exit.\n");
+	strcat(buf, "\nPress X to exit.\n");
 
 	while (true)
 	{
 		ps2_input::ScanPads();
 
-		if (ps2_input::SkipError())
+		if (ps2_input::Button1())
 			break;
 
-		ps2gskit_graphics::SwapBuffers();
+		ps2gskit_graphics::ShowSplash(buf);
 	}
 
 	exit(EXIT_FAILURE);

@@ -8,6 +8,7 @@ unsigned short ps2_input::ps2ButtonsUp = 0;
 unsigned short ps2_input::ps2ButtonsHeld = 0;
 
 static unsigned short nudgeKey, launchKey, leftKey, rightKey, upKey;
+static unsigned short lastBtns = 0;
 
 void ps2_input::Initialize()
 {
@@ -23,8 +24,6 @@ void ps2_input::Initialize()
 
 void ps2_input::ScanPads()
 {
-	static unsigned short lastBtns;
-
 	struct padButtonStatus pad;
 	int state = padGetState(0, 0);
 	if (state != PAD_STATE_STABLE || padRead(0, 0, &pad) == 0) return;
@@ -35,6 +34,14 @@ void ps2_input::ScanPads()
 	ps2ButtonsHeld = pad.btns;
 
 	lastBtns = pad.btns;
+}
+
+void ps2_input::Clear()
+{
+	ps2ButtonsDown = 0;
+	ps2ButtonsUp = 0;
+	ps2ButtonsHeld = 0;
+	lastBtns = 0;
 }
 
 bool ps2_input::Exit()
@@ -112,7 +119,12 @@ bool ps2_input::NudgeUpUp()
 	return (ps2ButtonsHeld & nudgeKey) && (ps2ButtonsUp & upKey);
 }
 
-bool ps2_input::SkipError()
+bool ps2_input::Button1()
 {
 	return ps2ButtonsDown & PAD_CROSS;
+}
+
+bool ps2_input::Button2()
+{
+	return ps2ButtonsDown & PAD_CIRCLE;
 }

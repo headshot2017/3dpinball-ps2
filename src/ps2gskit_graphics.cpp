@@ -2,6 +2,7 @@
 #include "pch.h"
 #include "maths.h"
 #include "render.h"
+#include "bmfont.h"
 
 #include <cstdio>
 #include <cstring>
@@ -13,16 +14,23 @@
 static GSGLOBAL *gsGlobal;
 static GSTEXTURE screen;
 static GSTEXTURE splash;
+static GSTEXTURE fontTex;
+static BMFont* font;
 
 extern unsigned char splash_raw[];
+extern unsigned char dejavusans_raw[];
+extern unsigned char dejavusans_fnt[];
 extern unsigned int  size_splash_raw;
+extern unsigned int  size_dejavusans_raw;
+extern unsigned int  size_dejavusans_fnt;
 
 void ps2gskit_graphics::Initialize()
 {
 	// default initialization
 	gsGlobal = gsKit_init_global();
-	gsGlobal->PSM = GS_PSM_CT24;
+	gsGlobal->PSM = GS_PSM_CT32;
 	gsGlobal->PSMZ = GS_PSMZ_16S;
+	gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
 
 	// default dmaKit initialization
 	dmaKit_init(D_CTRL_RELE_OFF,D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
@@ -33,6 +41,20 @@ void ps2gskit_graphics::Initialize()
 	gsKit_mode_switch(gsGlobal, GS_ONESHOT);
 
 	gsKit_TexManager_init(gsGlobal);
+
+	splash.Width = 320;
+	splash.Height = 222;
+	splash.PSM = GS_PSM_CT24;
+	splash.Filter = GS_FILTER_NEAREST;
+	splash.Mem = (u32*)splash_raw;
+
+	fontTex.Width = 128;
+	fontTex.Height = 128;
+	fontTex.PSM = GS_PSM_CT32;
+	fontTex.Filter = GS_FILTER_LINEAR;
+	fontTex.Mem = (u32*)dejavusans_raw;
+
+	font = bmfont::Init(dejavusans_fnt, size_dejavusans_fnt);
 }
 
 void ps2gskit_graphics::SetupEnv()
@@ -44,26 +66,14 @@ void ps2gskit_graphics::SetupEnv()
 	screen.Mem = (u32*)render::vscreen->BmpBufPtr1;
 }
 
-void ps2gskit_graphics::ShowSplash(const char* text)
+void ps2gskit_graphics::ShowSplash(std::string text)
 {
-	if (splash.Vram == 0)
-	{
-		splash.Width = 320;
-		splash.Height = 222;
-		splash.PSM = GS_PSM_CT24;
-		splash.Filter = GS_FILTER_NEAREST;
-		splash.Mem = (u32*)malloc(gsKit_texture_size_ee(splash.Width, splash.Height, splash.PSM));
-
-		memcpy(splash.Mem, splash_raw, gsKit_texture_size_ee(splash.Width, splash.Height, splash.PSM));
-	}
-
 	int startX = (gsGlobal->Width/2 - splash.Width/2);
 	int startY = (gsGlobal->Height/2 - splash.Height/2);
 
-	gsKit_TexManager_invalidate(gsGlobal, &splash);
-	gsKit_TexManager_bind(gsGlobal, &splash);
-
 	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0));
+
+	gsKit_TexManager_bind(gsGlobal, &splash);
 	gsKit_prim_sprite_texture(gsGlobal, &splash,
 							startX,  // X1
 							startY,  // Y2
@@ -75,6 +85,9 @@ void ps2gskit_graphics::ShowSplash(const char* text)
 							splash.Height, // V2
 							0,
 							GS_SETREG_RGBAQ(128,128,128, 0, 0));
+
+	if (!text.empty())
+		bmfont::Render(gsGlobal, &fontTex, font, text, gsGlobal->Width/2, gsGlobal->Height/2+104, 1, true);
 
 	SwapBuffers();
 }
@@ -98,7 +111,9 @@ void ps2gskit_graphics::Update()
 	int startY = (gsGlobal->Height/2 - render::vscreen->Height/2);
 	float divider = 1.65f;
 
-	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0)); // what this actually does is draw sprites of the specified color...
+	gsKit_clear(gsGlobal, GS_SETREG_RGBAQ(0, 0, 0, 0, 0));
+
+	// Table
 	gsKit_prim_sprite_texture(gsGlobal, &screen,
 							startX + render::get_offset_x(),  // X1
 							startY + render::get_offset_y(),  // Y2
@@ -110,6 +125,8 @@ void ps2gskit_graphics::Update()
 							screen.Height, // V2
 							0,
 							GS_SETREG_RGBAQ(128,128,128, 0, 0));
+
+	// Info
 	gsKit_prim_sprite_texture(gsGlobal, &screen,
 							startX + screen.Width/divider,  // X1
 							startY,  // Y2

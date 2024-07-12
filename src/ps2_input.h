@@ -5,6 +5,7 @@ class ps2_input
 public:
     static void Initialize();
     static void ScanPads();
+    static void Clear();
 
     static bool Exit();
     static bool Pause();
@@ -25,7 +26,8 @@ public:
     static bool NudgeUpDown();
     static bool NudgeUpUp();
 
-    static bool SkipError();
+    static bool Button1();
+    static bool Button2();
 
 private:
     static unsigned short ps2ButtonsDown;
