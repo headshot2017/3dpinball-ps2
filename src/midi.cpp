@@ -4,6 +4,7 @@
 
 #include "pb.h"
 #include "pinball.h"
+#include "ogg.h"
 
 extern unsigned char PINBALL_ogg[];
 extern unsigned int  size_PINBALL_ogg;
@@ -35,7 +36,9 @@ int ToVariableLen(uint32_t value, uint32_t& dst)
 int midi::play_pb_theme()
 {
 	// Todo: add support for tracks 2 and 3
-	return play_track(track1);
+	ogg::Play(PINBALL_ogg, size_PINBALL_ogg);
+	return 1;
+	//return play_track(track1);
 }
 
 int midi::music_stop()
@@ -45,12 +48,17 @@ int midi::music_stop()
 		active_track = nullptr;
 	}
 
+	ogg::Stop();
+
 	return true;
 }
 
 int midi::music_init()
 {
+	ogg::Init();
+
 	active_track = nullptr;
+	return true;
 
 	/*
 	if (pb::FullTiltMode)
@@ -60,7 +68,6 @@ int midi::music_init()
 		track3 = load_track("TABA3");
 	}
 	else
-	*/
 	{
 		// 3DPB has only one music track. PINBALL2.MID is a bitmap font, in the same format as PB_MSGFT.bin
 		track1 = load_track("PINBALL");
@@ -71,6 +78,7 @@ int midi::music_init()
 	if (!track3)
 		track3 = track1;
 	return track1 != nullptr;
+	*/
 }
 
 void midi::music_shutdown()

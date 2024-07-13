@@ -10,7 +10,7 @@ EE_BIN 	   = 3dpinball-ps2.elf
 
 EE_INCS 	:= -Isrc -I$(PS2DEV)/gsKit/include -I$(PS2SDK)/ports/include
 EE_LDFLAGS = -L$(PS2SDK)/ports/lib -L$(GSKIT)/lib
-EE_LIBS = -laudsrv -lpad -lgskit -ldmakit -lpacket -ldma -lgraph -ldraw -lmc -lc -lstdc++
+EE_LIBS = -lvorbisfile -lvorbis -logg -laudsrv -lpad -lgskit -ldmakit -lpacket -ldma -lgraph -ldraw -lmc -lc -lstdc++
 EE_LINKFILE := $(PS2SDK)/ee/startup/linkfile
 
 EE_IRX_FILES=\
