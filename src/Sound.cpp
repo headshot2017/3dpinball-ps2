@@ -15,9 +15,15 @@ int* Sound::TimeStamps = nullptr;
 bool Sound::Init(int channels, bool enableFlag)
 {
 	if (audsrv_init())
+	{
 		printf(" === Failed to init audsrv === \n");
+		return false;
+	}
 	if (audsrv_adpcm_init())
+	{
 		printf(" === Failed to init audsrv_adpcm === \n");
+		return false;
+	}
 
 	SetChannels(channels);
 	Enable(enableFlag);
@@ -57,14 +63,20 @@ void Sound::PlaySound(uint8_t* buf, int time, int size, int samplerate)
 
 uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 {
-	audsrv_adpcm_t* sample = new audsrv_adpcm_t;
-	memset(sample, 0, sizeof(audsrv_adpcm_t));
-
 	std::string adpName = lpName.substr(0, lpName.size()-4) + ".ADP";
 
 	FILE* f = fopen(adpName.c_str(), "rb");
 	if (!f)
 	{
+		f = fopen(lpName.c_str(), "rb");
+		if (!f) // skip this file
+		{
+			printf("Could not open '%s'\n", lpName.c_str());
+			return 0;
+		}
+		else
+			fclose(f);
+
 		std::string buf = "Converting WAV sounds to ADPCM...\n" + lpName;
 		ps2gskit_graphics::ShowSplash(buf);
 
@@ -72,10 +84,14 @@ uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 		if (adpenc_main(lpName.c_str(), adpName.c_str(), 0) != 0)
 		{
 			printf("Failed to convert '%s' to ADPCM\n", lpName.c_str());
-			delete sample;
 			return 0;
 		}
 		f = fopen(adpName.c_str(), "rb");
+	}
+	if (!f)
+	{
+		printf("Failed to open '%s'\n", adpName.c_str());
+		return 0;
 	}
 
 	fseek(f, 0, SEEK_END);
@@ -86,6 +102,9 @@ uint8_t* Sound::LoadWaveFile(const std::string& lpName)
 
 	fread(buffer, 1, size, f);
 	fclose(f);
+
+	audsrv_adpcm_t* sample = new audsrv_adpcm_t;
+	memset(sample, 0, sizeof(audsrv_adpcm_t));
 
 	// flush cache, otherwise it will load garbage
 	FlushCache(0);

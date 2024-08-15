@@ -55,10 +55,8 @@ int midi::music_stop()
 
 int midi::music_init()
 {
-	ogg::Init();
-
 	active_track = nullptr;
-	return true;
+	return ogg::Init();
 
 	/*
 	if (pb::FullTiltMode)

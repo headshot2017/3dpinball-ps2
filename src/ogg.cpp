@@ -1,5 +1,6 @@
 #include "pch.h"
 #include "ogg.h"
+#include "options.h"
 
 #include <audsrv.h>
 #include <vorbis/codec.h>
@@ -45,9 +46,10 @@ int ogg::oggThreadFunc(void* arg)
 }
 
 
-void ogg::Init()
+bool ogg::Init()
 {
-	if (pcm) return;
+	if (!options::Options.Sounds) return false;
+	if (pcm) return true;
 
 	int main_id = GetThreadId();
 	ChangeThreadPriority(main_id, 80);
@@ -59,6 +61,7 @@ void ogg::Init()
 	mutex.option = 0;
 	mutexID = CreateSema(&mutex);
 	printf("ogg Init\n");
+	return true;
 }
 
 void ogg::Play(u8* buf, u32 bufSize)

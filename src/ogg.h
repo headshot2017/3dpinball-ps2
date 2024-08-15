@@ -3,7 +3,7 @@
 class ogg
 {
 public:
-	static void Init();
+	static bool Init();
 	static void Play(u8* buf, u32 bufSize);
 	static void Stop();
 
