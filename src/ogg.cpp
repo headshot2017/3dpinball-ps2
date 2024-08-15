@@ -48,13 +48,26 @@ int ogg::oggThreadFunc(void* arg)
 
 bool ogg::Init()
 {
-	if (!options::Options.Sounds) return false;
-	if (pcm) return true;
+	if (!options::Options.Sounds)
+	{
+		printf("ogg: not inited because sounds are disabled\n");
+		return false;
+	}
+	if (pcm)
+	{
+		printf("ogg: already inited\n");
+		return true;
+	}
+
+	pcm = (char*)malloc(BUF_SIZE);
+	if (!pcm)
+	{
+		printf("ogg: could not allocate pcm\n");
+		return false;
+	}
 
 	int main_id = GetThreadId();
 	ChangeThreadPriority(main_id, 80);
-
-	pcm = (char*)malloc(BUF_SIZE);
 
 	mutex.init_count = 1;
 	mutex.max_count = 1;
@@ -66,7 +79,7 @@ bool ogg::Init()
 
 void ogg::Play(u8* buf, u32 bufSize)
 {
-	if (playing) return;
+	if (playing || !pcm) return;
 
 	printf("ogg Play\n");
 	FILE* f = fmemopen(buf, bufSize, "rb");
@@ -93,7 +106,7 @@ void ogg::Play(u8* buf, u32 bufSize)
 
 void ogg::Stop()
 {
-	if (!playing) return;
+	if (!playing || !pcm) return;
 
 	WaitSema(mutexID);
 	playing = false;
