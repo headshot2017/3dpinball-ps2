@@ -59,13 +59,6 @@ bool ogg::Init()
 		return true;
 	}
 
-	pcm = (char*)malloc(BUF_SIZE);
-	if (!pcm)
-	{
-		printf("ogg: could not allocate pcm\n");
-		return false;
-	}
-
 	int main_id = GetThreadId();
 	ChangeThreadPriority(main_id, 80);
 
@@ -73,6 +66,20 @@ bool ogg::Init()
 	mutex.max_count = 1;
 	mutex.option = 0;
 	mutexID = CreateSema(&mutex);
+	if (mutexID < 0)
+	{
+		printf("ogg: could not create semaphore\n");
+		return false;
+	}
+
+	pcm = (char*)malloc(BUF_SIZE);
+	if (!pcm)
+	{
+		printf("ogg: could not allocate pcm\n");
+		DeleteSema(mutexID);
+		return false;
+	}
+
 	printf("ogg Init\n");
 	return true;
 }
@@ -83,6 +90,12 @@ void ogg::Play(u8* buf, u32 bufSize)
 
 	printf("ogg Play\n");
 	FILE* f = fmemopen(buf, bufSize, "rb");
+	if (!f)
+	{
+		printf("Couldn't fmemopen buffer\n");
+		return;
+	}
+
 	if (ov_open(f, &vf, NULL, 0) < 0)
 	{
 		printf("Not an OGG file\n");
@@ -99,7 +112,19 @@ void ogg::Play(u8* buf, u32 bufSize)
 	oggThread.gp_reg      = &_gp;
 	oggThread.initial_priority = 18;
 	threadID = CreateThread(&oggThread);
-	StartThread(threadID, NULL);
+	if (threadID < 0)
+	{
+		printf("failed to create ogg thread\n");
+		ov_clear(&vf);
+		return;
+	}
+
+	if (StartThread(threadID, NULL) < 0)
+	{
+		printf("failed to start ogg thread\n");
+		ov_clear(&vf);
+		return;
+	}
 
 	printf("ogg Started (Thread %d)\n", threadID);
 }
@@ -119,6 +144,8 @@ void ogg::Stop()
 
 	TerminateThread(threadID);
 	free(oggThread.stack);
+
+	ov_clear(&vf);
 
 	printf("ogg Stopped\n");
 }
