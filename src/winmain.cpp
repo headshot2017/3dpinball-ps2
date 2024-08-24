@@ -119,7 +119,7 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 
 	// Set the base path for PINBALL.DAT
 
-	BasePath = (char *)"mass:/APPS/3DPINBALL/";
+	BasePath = (char *)"./3DPINBALL/";
 
 	pinball::quickFlag = 0; // strstr(lpCmdLine, "-quick") != nullptr;
 	DatFileName = options::get_string("Pinball Data", pinball::get_rc_string(168, 0));
