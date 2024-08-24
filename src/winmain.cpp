@@ -182,7 +182,8 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 		}
 	}
 
-	ps2gskit_graphics::SetupEnv();
+	if (!ps2gskit_graphics::SetupEnv())
+		PrintFatalError("Could not run SetupEnv. Not enough memory(?)\n");
 
 	// Initialize game
 
@@ -216,7 +217,7 @@ int winmain::WinMain(LPCSTR lpCmdLine)
 		{
 			// Update game when not paused
 
-			pb::frame(1000.0f / 60.0f);
+			pb::frame(1000.0f / ps2gskit_graphics::GetFrameRate());
 		}
 
 		// Copy game screen buffer to texture

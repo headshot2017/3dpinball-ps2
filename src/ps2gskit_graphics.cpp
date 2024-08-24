@@ -31,6 +31,7 @@ void ps2gskit_graphics::Initialize()
 	gsGlobal->PSM = GS_PSM_CT32;
 	gsGlobal->PSMZ = GS_PSMZ_16S;
 	gsGlobal->PrimAlphaEnable = GS_SETTING_ON;
+	gsGlobal->ZBuffering = GS_SETTING_OFF;
 
 	// default dmaKit initialization
 	dmaKit_init(D_CTRL_RELE_OFF,D_CTRL_MFD_OFF, D_CTRL_STS_UNSPEC, D_CTRL_STD_OFF, D_CTRL_RCYC_8, 1 << DMA_CHANNEL_GIF);
@@ -42,28 +43,55 @@ void ps2gskit_graphics::Initialize()
 
 	gsKit_TexManager_init(gsGlobal);
 
+	memset(&splash, 0, sizeof(GSTEXTURE));
 	splash.Width = 320;
 	splash.Height = 222;
 	splash.PSM = GS_PSM_CT24;
 	splash.Filter = GS_FILTER_NEAREST;
 	splash.Mem = (u32*)splash_raw;
 
+	//splash.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(splash.Width, splash.Height, splash.PSM), GSKIT_ALLOC_USERBUFFER);
+	//gsKit_texture_upload(gsGlobal, &splash);
+
+	memset(&fontTex, 0, sizeof(GSTEXTURE));
 	fontTex.Width = 128;
 	fontTex.Height = 128;
 	fontTex.PSM = GS_PSM_CT32;
 	fontTex.Filter = GS_FILTER_LINEAR;
 	fontTex.Mem = (u32*)dejavusans_raw;
+	//fontTex.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(fontTex.Width, fontTex.Height, fontTex.PSM), GSKIT_ALLOC_USERBUFFER);
+	//gsKit_texture_upload(gsGlobal, &fontTex);
 
 	font = bmfont::Init(dejavusans_fnt, size_dejavusans_fnt);
 }
 
-void ps2gskit_graphics::SetupEnv()
+bool ps2gskit_graphics::SetupEnv()
 {
+	/*
+	gsKit_vram_clear(gsGlobal);
+
+	memset(&splash, 0, sizeof(GSTEXTURE));
+
+	memset(&fontTex, 0, sizeof(GSTEXTURE));
+	fontTex.Width = 128;
+	fontTex.Height = 128;
+	fontTex.PSM = GS_PSM_CT32;
+	fontTex.Filter = GS_FILTER_LINEAR;
+	fontTex.Mem = (u32*)dejavusans_raw;
+	fontTex.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(fontTex.Width, fontTex.Height, fontTex.PSM), GSKIT_ALLOC_USERBUFFER);
+	gsKit_texture_upload(gsGlobal, &fontTex);
+	*/
+
+	memset(&screen, 0, sizeof(GSTEXTURE));
 	screen.Width = render::vscreen->Width;
 	screen.Height = render::vscreen->Height;
 	screen.PSM = GS_PSM_CT32;
 	screen.Filter = GS_FILTER_NEAREST;
 	screen.Mem = (u32*)render::vscreen->BmpBufPtr1;
+	//screen.Vram = gsKit_vram_alloc(gsGlobal, gsKit_texture_size(screen.Width, screen.Height, screen.PSM), GSKIT_ALLOC_USERBUFFER);
+	//gsKit_texture_upload(gsGlobal, &screen);
+
+	return !!screen.Mem;
 }
 
 void ps2gskit_graphics::ShowSplash(std::string text)
@@ -90,6 +118,11 @@ void ps2gskit_graphics::ShowSplash(std::string text)
 		bmfont::Render(gsGlobal, &fontTex, font, text, gsGlobal->Width/2, gsGlobal->Height/2+104, 1, true);
 
 	SwapBuffers();
+}
+
+int ps2gskit_graphics::GetFrameRate()
+{
+	return (gsGlobal->Mode == GS_MODE_PAL) ? 50 : 60;
 }
 
 void ps2gskit_graphics::SwapBuffers()
