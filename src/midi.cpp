@@ -84,6 +84,8 @@ void midi::music_shutdown()
 	//if (active_track)
 		//Mix_HaltMusic();
 
+	music_stop();
+
 	for (auto midi : LoadedTracks)
 	{
 		//Mix_FreeMusic(midi);
