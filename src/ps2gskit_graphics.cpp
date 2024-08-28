@@ -58,7 +58,7 @@ void ps2gskit_graphics::Initialize()
 	//gsKit_texture_upload(gsGlobal, &splash);
 
 	memset(&fontTex, 0, sizeof(GSTEXTURE));
-	fontTex.Width = 128;
+	fontTex.Width = 256;
 	fontTex.Height = 128;
 	fontTex.PSM = GS_PSM_CT32;
 	fontTex.Filter = GS_FILTER_LINEAR;
